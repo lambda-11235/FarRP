@@ -1,0 +1,5 @@
+package farrp
+
+modules = FarRP
+        , FarRP.Core
+        , FarRP.Ideal

@@ -1,6 +1,5 @@
-{-# LANGUAGE Arrows #-}
 
-module FarRP
+module FarRP.Core
 
 import Control.Arrow
 import Control.Category
@@ -14,11 +13,19 @@ public export
 Time : Type
 Time = Double
 
+||| A difference in time.
 public export
 DTime : Type
 DTime = Double
 
+||| Events are maybe values, which produce nothing or just something.
+public export
+Event : Type -> Type
+Event = Maybe
 
+
+||| SF can be thought of as a function from one time varying value to another.
+||| That is, `SF a b = (a -> Time) -> (b -> Time)`
 data SF : Type -> Type -> Type where
   SFFun : (DTime -> a -> b) -> SF a b
   SFFold : b -> (DTime -> a -> b -> b) -> SF a b
@@ -26,6 +33,8 @@ data SF : Type -> Type -> Type where
   SFFst : SF a b -> SF (a, c) (b, c)
   SFComp : SF a b -> SF b c -> SF a c
 
+||| Steps an SF through one computation, given a time delta and an input.
+||| An updated SF value and the computation output are then returned.
 stepSF : SF a b -> DTime -> a -> (SF a b, b)
 stepSF sf@(SFFun f) dt x = (sf, f dt x)
 stepSF (SFFold acc f) dt x = let res = f dt x acc in
@@ -61,6 +70,8 @@ switch : SF a (b, Maybe c) -> (c -> SF a b) -> SF a b
 switch = SFSwitch
 
 
+||| Integrate an SF's input.
+||| `c` The interation constant.
 integrate : Double -> SF Double Double
 integrate c = SFFold c $ \dt, x, acc => x * dt + acc
 
