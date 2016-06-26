@@ -8,19 +8,31 @@ import System
 %default total
 
 
+||| A time in seconds.
 public export
-Time : Type
-Time = Double
+data Time = MkTime Double
 
--- TODO: Make a seperate data type from double.
-||| A difference in time.
+||| A time delta in seconds.
 public export
 DTime : Type
-DTime = Double
+DTime = Time
+
+timeToDouble : Time -> Double
+timeToDouble (MkTime x) = x
+
+Num Time where
+  (+) (MkTime x) (MkTime y) = MkTime (x + y)
+  (*) (MkTime x) (MkTime y) = MkTime (x * y)
+  fromInteger n = MkTime (fromInteger n)
+
+Neg Time where
+  negate (MkTime x) = MkTime (negate x)
+  (-) (MkTime x) (MkTime y) = MkTime (x - y)
+  abs (MkTime x) = MkTime (abs x)
 
 
 getTime : IO Time
-getTime = map fromInteger time
+getTime = map (MkTime . fromInteger) time
 
 
 data DiffTimer : Type where
