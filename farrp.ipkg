@@ -4,6 +4,7 @@ sourcedir = src
 
 modules = FarRP
         , FarRP.Core
+        , FarRP.Event
         , FarRP.Ideal
         , FarRP.Time
 

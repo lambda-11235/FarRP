@@ -11,14 +11,9 @@ import FarRP.Time
 %default total
 
 
-||| Events are maybe values, which produce nothing or just something.
-public export
-Event : Type -> Type
-Event = Maybe
-
-
 ||| SF can be thought of as a function from one time varying value to another.
 ||| That is, `SF a b = (a -> Time) -> (b -> Time)`
+public export
 data SF : Type -> Type -> Type where
   SFFun : (DTime -> a -> b) -> SF a b
   SFFold : b -> (DTime -> a -> b -> b) -> SF a b
