@@ -12,6 +12,7 @@ public export
 Time : Type
 Time = Double
 
+-- TODO: Make a seperate data type from double.
 ||| A difference in time.
 public export
 DTime : Type
