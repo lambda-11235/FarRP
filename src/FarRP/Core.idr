@@ -4,19 +4,12 @@ module FarRP.Core
 import Control.Arrow
 import Control.Category
 
+import FarRP.Time
+
 
 %access export
 %default total
 
-
-public export
-Time : Type
-Time = Double
-
-||| A difference in time.
-public export
-DTime : Type
-DTime = Double
 
 ||| Events are maybe values, which produce nothing or just something.
 public export

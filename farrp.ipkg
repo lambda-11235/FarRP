@@ -1,5 +1,10 @@
 package farrp
 
+sourcedir = src
+
 modules = FarRP
         , FarRP.Core
         , FarRP.Ideal
+        , FarRP.Time
+
+main = FarRP
