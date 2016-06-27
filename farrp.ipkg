@@ -8,6 +8,6 @@ modules = FarRP
         , FarRP.Ideal
         , FarRP.Time
 
-main = FarRP
-
 pkgs = effects
+
+objs = idris_farrp_time.h

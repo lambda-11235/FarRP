@@ -6,6 +6,8 @@ import Effects
 import System
 
 
+%include C "idris_farrp_time.h"
+
 %access export
 %default total
 
@@ -32,7 +34,8 @@ Neg DTime where
 
 private
 getTime' : IO Double
-getTime' = map fromInteger time
+getTime' = foreign FFI_C "getTime" (IO Double)
+
 
 public export
 data Time : Effect where
