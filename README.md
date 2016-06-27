@@ -12,7 +12,7 @@ on and changes with time. This can be seen in the `FarRP.Ideal` module and the
 stepSF : SF a b -> DTime -> a -> (SF a b, b)
 ```
 Here we see that the `SF` is producing a result of type `b` given an input of
-type `b` and a time delta. It is also producing a new `SF` value. This shows the
+type `a` and a time delta. It is also producing a new `SF` value. This shows the
 core idea behind the FarFP library, that `SF` values are functions that vary
 with time.
 
