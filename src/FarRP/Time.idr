@@ -32,7 +32,6 @@ Neg DTime where
   abs (MkDTime x) = MkDTime (abs x)
 
 
-private
 getTime' : IO Double
 getTime' = foreign FFI_C "getTime" (IO Double)
 

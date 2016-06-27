@@ -1,10 +1,7 @@
 
 module FarRP.Ideal
 
-
-public export
-DTime : Type
-DTime = Double
+import FarRP.Time
 
 
 ||| This would've been the ideal form of SF. Unfortunately id, (.), arrow, and
