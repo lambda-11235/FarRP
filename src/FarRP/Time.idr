@@ -1,6 +1,8 @@
 
 module FarRP.Time
 
+import Control.IOExcept
+import Effects
 import System
 
 
@@ -8,40 +10,68 @@ import System
 %default total
 
 
-||| A time in seconds.
-public export
-data Time = MkTime Double
-
 ||| A time delta in seconds.
 public export
-DTime : Type
-DTime = Time
+data DTime = MkDTime Double
 
-timeToDouble : Time -> Double
-timeToDouble (MkTime x) = x
+dtimeToDouble : DTime -> Double
+dtimeToDouble (MkDTime x) = x
 
-Num Time where
-  (+) (MkTime x) (MkTime y) = MkTime (x + y)
-  (*) (MkTime x) (MkTime y) = MkTime (x * y)
-  fromInteger n = MkTime (fromInteger n)
+public export
+Num DTime where
+  (+) (MkDTime x) (MkDTime y) = MkDTime (x + y)
+  (*) (MkDTime x) (MkDTime y) = MkDTime (x * y)
+  fromInteger n = MkDTime (fromInteger n)
 
-Neg Time where
-  negate (MkTime x) = MkTime (negate x)
-  (-) (MkTime x) (MkTime y) = MkTime (x - y)
-  abs (MkTime x) = MkTime (abs x)
+public export
+Neg DTime where
+  negate (MkDTime x) = MkDTime (negate x)
+  (-) (MkDTime x) (MkDTime y) = MkDTime (x - y)
+  abs (MkDTime x) = MkDTime (abs x)
 
 
-getTime : IO Time
-getTime = map (MkTime . fromInteger) time
+private
+getTime' : IO Double
+getTime' = map fromInteger time
+
+public export
+data Time : Effect where
+  GetTime : sig Time Double
+
+public export
+implementation Handler Time IO where
+    handle () GetTime k = do t <- getTime'; k t ()
+
+public export
+implementation Handler Time (IOExcept a) where
+    handle () GetTime k = do t <- ioe_lift getTime'; k t ()
+
+public export
+TIME : EFFECT
+TIME = MkEff () Time
+
+||| Get the time in seconds since the Epoch.
+getTime : Eff Double [TIME]
+getTime = call $ GetTime
+
 
 
 data DiffTimer : Type where
-  MkDiffTimer : Time -> DiffTimer
+  MkDiffTimer : Double -> DiffTimer
 
-newDiffTimer : IO DiffTimer
-newDiffTimer = map MkDiffTimer getTime
+newDiffTimer' : IO DiffTimer
+newDiffTimer' = map MkDiffTimer getTime'
 
-stepDiffTimer : DiffTimer -> IO (DTime, DiffTimer)
+newDiffTimer : Eff DiffTimer [TIME]
+newDiffTimer = do t <- getTime
+                  return $ MkDiffTimer t
+
+stepDiffTimer' : DiffTimer -> IO (DTime, DiffTimer)
+stepDiffTimer' (MkDiffTimer oldtime) = do newtime <- getTime'
+                                          let dt = newtime - oldtime
+                                          return (MkDTime dt, MkDiffTimer newtime)
+
+stepDiffTimer : DiffTimer -> Eff (DTime, DiffTimer) [TIME]
 stepDiffTimer (MkDiffTimer oldtime) = do newtime <- getTime
                                          let dt = newtime - oldtime
-                                         return (dt, MkDiffTimer newtime)
+                                         return (MkDTime dt, MkDiffTimer newtime)

@@ -61,10 +61,10 @@ switch = SFSwitch
 ||| Integrate an SF's input.
 ||| `c` The interation constant.
 integrate : Double -> SF Double Double
-integrate c = SFFold c $ \dt, x, acc => x * (timeToDouble dt) + acc
+integrate c = SFFold c $ \dt, x, acc => x * (dtimeToDouble dt) + acc
 
 differentiate : SF Double Double
-differentiate = SFFun (\dt, x => x * (timeToDouble dt))
+differentiate = SFFun (\dt, x => x * (dtimeToDouble dt))
 
-time : SF () Time
-time = arrow MkTime . (integrate 0) . arrow (const 1)
+time : SF () Double
+time = (integrate 0) . arrow (const 1)

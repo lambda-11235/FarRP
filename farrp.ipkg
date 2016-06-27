@@ -9,3 +9,5 @@ modules = FarRP
         , FarRP.Time
 
 main = FarRP
+
+pkgs = effects
