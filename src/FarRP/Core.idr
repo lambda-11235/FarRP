@@ -59,7 +59,7 @@ switch = SFSwitch
 
 
 ||| Integrate an SF's output with respect to time.
-||| `c` The interation constant.
+||| The input value is the integration constant.
 integrate : Double -> SF Double Double
 integrate c = SFFold c $ \dt, x, acc => x * (dtimeToDouble dt) + acc
 
