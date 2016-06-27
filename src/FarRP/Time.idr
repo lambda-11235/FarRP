@@ -55,7 +55,7 @@ getTime : Eff Double [TIME]
 getTime = call $ GetTime
 
 
-
+||| Produces time deltas in an IO context.
 data DiffTimer : Type where
   MkDiffTimer : Double -> DiffTimer
 

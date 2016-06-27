@@ -17,6 +17,7 @@ Event : Type -> Type
 Event = Maybe
 
 
+||| Hold on to the last value produced by an event.
 hold : a -> SF (Event a) a
 hold x = sfFold x (\ev, y => case ev of
                                Nothing => y
