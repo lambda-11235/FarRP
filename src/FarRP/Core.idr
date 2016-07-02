@@ -1,9 +1,8 @@
 
 module FarRP.Core
 
-import Control.Arrow
-import Control.Category
-
+import FarRP.DecDesc
+import FarRP.SigVect
 import FarRP.Time
 
 
@@ -11,62 +10,52 @@ import FarRP.Time
 %default total
 
 
-||| SF can be thought of as a function from one time varying value to another.
-||| That is, `SF a b = (a -> Time) -> (b -> Time)`
-public export
-data SF : Type -> Type -> Type where
-  SFFun : (DTime -> a -> b) -> SF a b
-  SFFold : b -> (DTime -> a -> b -> b) -> SF a b
-  SFSwitch : SF a (b, Maybe c) -> (c -> SF a b) -> SF a b
-  SFFst : SF a b -> SF (a, c) (b, c)
-  SFComp : SF a b -> SF b c -> SF a c
+data SF : SVDesc -> SVDesc -> DecDesc -> Type where
+  SFPrim : {State : Type} -> (DTime -> State -> SVRep as -> (State, SVRep bs))
+         -> State -> SF as bs Cau
 
-||| Steps an SF through one computation, given a time delta and an input.
-||| An updated SF value and the computation output are then returned.
-stepSF : SF a b -> DTime -> a -> (SF a b, b)
-stepSF sf@(SFFun f) dt x = (sf, f dt x)
-stepSF (SFFold acc f) dt x = let res = f dt x acc in
-                               (SFFold res f, res)
-stepSF (SFSwitch sf f) dt x = let (sf', (res, ms)) = stepSF sf dt x in
-  case ms of
-    Nothing => (SFSwitch sf' f, res)
-    (Just y) => let (sf'', res') = stepSF (f y) dt x in (sf'', res')
-stepSF (SFFst sf) dt x = let (sf', res) = stepSF sf dt (fst x) in
-                           (SFFst sf', (res, snd x))
-stepSF (SFComp sf1 sf2) dt x = let (sf1', res1) = stepSF sf1 dt x
-                                   (sf2', res2) = stepSF sf2 dt res1
-                               in (SFComp sf1' sf2', res2)
+  SFDPrim : {State : Type} -> (DTime -> State -> (SVRep as -> State, SVRep bs))
+         -> State -> SF as bs Dec
+
+  SFComp : SF as bs d1 -> SF bs cs d2 -> SF as cs (d1 /\ d2)
+
+  SFPair : SF as bs d1 -> SF cs ds d2 -> SF (as ++ cs) (bs ++ ds) (d1 \/ d2)
+
+  SFLoop : SF (as ++ cs) (bs ++ ds) d -> SF ds cs Dec -> SF as bs d
+
+  SFSwitch : SF as (E e :: bs) d1 -> (e -> SF as bs d2) -> SF as bs (d1 \/ d2)
+
+  SFDSwitch : SF as (E e :: bs) d1 -> (e -> SF as bs d2) -> SF as bs (d1 \/ d2)
 
 
-Category SF where
-  id = SFFun (\_, x => x)
+stepSF : SF as bs d -> DTime -> SVRep as -> (SF as bs d, SVRep bs)
+stepSF (SFPrim f st) dt xs = let r = f dt st xs in (SFPrim f (fst r), snd r)
+stepSF (SFDPrim f st) dt xs = let r = f dt st in (SFDPrim f (fst r xs), snd r)
+stepSF (SFComp sf1 sf2) dt xs = let r1 = stepSF sf1 dt xs
+                                    r2 = stepSF sf2 dt (snd r1)
+                                in (SFComp (fst r1) (fst r2), snd r2)
+stepSF (SFPair sf1 sf2) dt xs = let pxs = split xs
+                                    r1 = stepSF sf1 dt (fst pxs)
+                                    r2 = stepSF sf2 dt (snd pxs)
+                                in (SFPair (fst r1) (fst r2), (snd r1) ++ (snd r2))
+stepSF (SFLoop sf1 sf2) dt xs = ?loop
+-- TODO: Get rid of believe_mes
+stepSF (SFSwitch sf f) dt xs = let r1 = stepSF sf dt xs
+                               in
+                                 case snd r1 of
+                                   ECons Nothing svr => (SFSwitch (fst r1) f, svr)
+                                   ECons (Just e) svr =>
+                                     let r2 = stepSF (f e) dt xs
+                                     in believe_me (fst r2, svr)
+stepSF (SFDSwitch sf f) dt xs = let r = stepSF sf dt xs
+                                in
+                                  case snd r of
+                                    ECons Nothing svr => (SFSwitch (fst r) f, svr)
+                                    ECons (Just e) svr => believe_me (stepSF (f e) dt xs)
 
-  (.) (SFFun f) (SFFun g) = SFFun (\dt => (f dt . g dt))
-  (.) sf1 sf2 = SFComp sf2 sf1
 
-Arrow SF where
-  arrow f = SFFun (\_ => f)
-
-  first (SFFun f) = SFFun (\dt, p => (f dt (fst p), snd p))
-  first sf = SFFst sf
-
-
-sfFold : b -> (a -> b -> b) -> SF a b
-sfFold x f = SFFold x (\_ => f)
-
-switch : SF a (b, Maybe c) -> (c -> SF a b) -> SF a b
-switch = SFSwitch
-
-
-||| Integrate an SF's output with respect to time.
-||| The input value is the integration constant.
-integrate : Double -> SF Double Double
-integrate c = SFFold c $ \dt, x, acc => x * (dtimeToDouble dt) + acc
-
-||| Differentiate an SF's output with respect to time.
-differentiate : SF Double Double
-differentiate = SFFun (\dt, x => x * (dtimeToDouble dt))
-
-||| Returns the time in seconds since this wire started receiving input.
-time : SF () Double
-time = (integrate 0) . arrow (const 1)
+pure : (a -> b) -> SF [C i a] [C i b] Cau
+pure {i} f = SFPrim (func i) ()
+  where
+    func Ini dt () (CCons x xs) = ((), CCons (f x) xs)
+    func Uni dt () (UnInitCons xs) = ((), UnInitCons xs)
