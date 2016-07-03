@@ -4,8 +4,8 @@ sourcedir = src
 
 modules = FarRP
         , FarRP.Core
-        , FarRP.Event
-        , FarRP.Ideal
+        , FarRP.DecDesc
+        , FarRP.SigVect
         , FarRP.Time
 
 pkgs = effects

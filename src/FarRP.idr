@@ -2,4 +2,5 @@
 module FarRP
 
 import public FarRP.Core
-import public FarRP.Event
+import public FarRP.DecDesc
+import public FarRP.SigVect

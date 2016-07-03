@@ -22,11 +22,8 @@ SVDesc = List SigDesc
 data SVRep : SVDesc -> Type where
   SVRNil : SVRep []
   ECons : Maybe a -> SVRep as -> SVRep ((E a) :: as)
-  CCons : a -> SVRep as -> SVRep ((C Ini a) :: as)
+  CCons : a -> SVRep as -> SVRep ((C i a) :: as)
   UnInitCons : SVRep as -> SVRep ((C Uni a) :: as)
-
-initSVRep : SVRep ((C Uni a) :: as) -> a -> SVRep ((C Ini a) :: as)
-initSVRep (UnInitCons xs) x = CCons x xs
 
 
 (++) : SVRep as -> SVRep bs -> SVRep (as ++ bs)
@@ -37,6 +34,7 @@ initSVRep (UnInitCons xs) x = CCons x xs
     append' as [] svr1 SVRNil = replace {P = SVRep} (sym $ appendNilRightNeutral as) svr1
     append' ((E a) :: as) bs (ECons x xs) svr2 = ECons x (append' as bs xs svr2)
     append' ((C Ini a) :: as) bs (CCons x xs) svr2 = CCons x (append' as bs xs svr2)
+    append' ((C Uni a) :: as) bs (CCons x xs) svr2 = CCons x (append' as bs xs svr2)
     append' ((C Uni a) :: as) bs (UnInitCons xs) svr2 = UnInitCons (append' as bs xs svr2)
 
 
@@ -50,6 +48,8 @@ split {as} {bs} svr = split' as bs svr
     split' ((E a) :: as) bs (ECons x xs) = let r = split' as bs xs
                                            in (ECons x (fst r), snd r)
     split' ((C Ini a) :: as) bs (CCons x xs) = let r = split' as bs xs
+                                               in (CCons x (fst r), snd r)
+    split' ((C Uni a) :: as) bs (CCons x xs) = let r = split' as bs xs
                                                in (CCons x (fst r), snd r)
     split' ((C Uni a) :: as) bs (UnInitCons xs) = let r = split' as bs xs
                                                   in (UnInitCons (fst r), snd r)

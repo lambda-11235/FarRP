@@ -21,3 +21,15 @@ infixr 5 /\
 (/\) : DecDesc -> DecDesc -> DecDesc
 (/\) Cau Cau = Cau
 (/\) _ _ = Dec
+
+decJoin : Dec \/ d = d
+decJoin {d} = decJoin' d
+  where
+    decJoin' Dec = Refl
+    decJoin' Cau = Refl
+
+cauMeet : Cau /\ d = d
+cauMeet {d} = cauMeet' d
+  where
+    cauMeet' Dec = Refl
+    cauMeet' Cau = Refl
