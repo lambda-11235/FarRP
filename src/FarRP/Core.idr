@@ -10,6 +10,7 @@ import FarRP.Time
 %default total
 
 
+public export
 data SF : SVDesc -> SVDesc -> DecDesc -> Type where
   SFPrim : {State : Type} -> (DTime -> State -> SVRep as -> (State, SVRep bs))
          -> State -> SF as bs Cau
@@ -77,54 +78,10 @@ stepSF (SFDSwitch sf f) dt xs = let r1 = stepSF sf dt xs
                                       in (joinWeaken (fst r2), snd r2)
 
 
-pure : (a -> b) -> SF [C i a] [C i b] Cau
-pure {i} f = SFPrim (func i) ()
-  where
-    func Ini dt () (CCons x xs) = ((), CCons (f x) xs)
-    func Uni dt () (CCons x xs) = ((), CCons (f x) xs)
-    func Uni dt () (UnInitCons xs) = ((), UnInitCons xs)
+partial
+stepSFE : SF [E a] bs d -> DTime -> a -> (SF [E a] bs d, SVRep bs)
+stepSFE sf dt x = stepSF sf dt (eSingle x)
 
-constant : b -> SF as [C Ini b] Dec
-constant x = SFDPrim (\_, _ => (const (), CCons x SVRNil)) ()
-
-infixl 9 >>>
-(>>>) : SF as bs d1 -> SF bs cs d2 -> SF as cs (d1 /\ d2)
-(>>>) = SFComp
-
-infixr 3 ***
-(***) : SF as bs d1 -> SF cs ds d2 -> SF (as ++ cs) (bs ++ ds) (d1 \/ d2)
-(***) = SFPair
-
-infixr 3 &&&
-(&&&) : SF as bs d1 -> SF as cs d2 -> SF as (bs ++ cs) (d1 \/ d2)
-(&&&) sf1 sf2 = replace cauMeet (double >>> (sf1 *** sf2))
-  where
-    double : SF as (as ++ as) Cau
-    double = SFPrim (\_, _, svr => ((), svr ++ svr)) ()
-
-
-edge : SF [C Ini Bool] [E Unit] Cau
-edge = SFPrim edge' ()
-  where
-    edge' _ _ (CCons True xs) = ((), ECons (Just ()) xs)
-    edge' _ _ _ = ((), ECons Nothing SVRNil)
-
-hold : a -> SF [E a] [C Ini a] Cau
-hold x = SFPrim hold' x
-  where
-    hold' _ _ (ECons (Just x') xs) = (x', CCons x' xs)
-    hold' _ x' (ECons Nothing xs) = (x', CCons x' xs)
-
-pre : SF [C Ini a] [C Uni a] Dec
-pre = SFDPrim pre' Nothing
-  where
-    pre' : DTime -> Maybe (SVRep [C Ini a])
-         -> (SVRep [C Ini a] -> Maybe (SVRep [C Ini a]), SVRep [C Uni a])
-    pre' _ Nothing = (Just, UnInitCons SVRNil)
-    pre' _ (Just (CCons x xs)) = (Just, (CCons x xs))
-
-initialize : b -> SF [C Uni b] [C Ini b] Cau
-initialize x = SFPrim init' ()
-  where
-    init' _ _ (CCons x' xs) = ((), CCons x' xs)
-    init' _ _ (UnInitCons xs) = ((), CCons x xs)
+partial
+stepSFC : SF [C i a] bs d -> DTime -> a -> (SF [C i a] bs d, SVRep bs)
+stepSFC sf dt x = stepSF sf dt (cSingle x)

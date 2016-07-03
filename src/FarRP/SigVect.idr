@@ -25,6 +25,17 @@ data SVRep : SVDesc -> Type where
   CCons : a -> SVRep as -> SVRep ((C i a) :: as)
   UnInitCons : SVRep as -> SVRep ((C Uni a) :: as)
 
+||| An empty event.
+eEmpty : SVRep [E a]
+eEmpty = ECons Nothing SVRNil
+
+||| An event containing a value.
+eSingle : a -> SVRep [E a]
+eSingle x = ECons (Just x) SVRNil
+
+cSingle : a -> SVRep [C i a]
+cSingle x = CCons x SVRNil
+
 
 (++) : SVRep as -> SVRep bs -> SVRep (as ++ bs)
 (++) {as} {bs} svr1 svr2 = append' as bs svr1 svr2
