@@ -1,20 +1,28 @@
 
 # FarRP
 
-FarRP is a simple arrowized FRP library for Idris. It doesn't rely the IO or Eff
-monads, so users can use it outside of these contexts. The library is based on
-the state function (`SF`) datatype. Abstractly, an `SF a b` value can be thought
-of as a function between two time varying values, that is as `(Time -> a) ->
-(Time -> b)`. More pragmatically `SF` can be thought as a function that depends
-on and changes with time. This can be seen in the `FarRP.Ideal` module and the
-`stepSF` function.
-``` idris
-stepSF : SF a b -> DTime -> a -> (SF a b, b)
-```
-Here we see that the `SF` is producing a result of type `b` given an input of
-type `a` and a time delta. It is also producing a new `SF` value. This shows the
-core idea behind the FarFP library, that `SF` values are functions that vary
-with time.
+FarRP is an arrowized FRP library for Idris which uses dependent types to
+provide static guarantees. It is based on Neil Sculthorpe and Henrik Nilsson's
+paper "Safe Functional Reactive Programming through Dependent Types".
+
+## Contributing
+
+Contributions in the form of pull requests, bug reports, and thoughts on how to
+improve this library would be most appreciated. In particular there are several
+open problems that could be worked on.
+
+- Making stepSF total. Currently the case for SFLoop uses non-terminating
+  recursion. This is probably the most pressing issue.
+
+- Verifying that the implementation follows the semantics given in the paper.
+  When implementing this system I didn't pay strict attention to the formal
+  semantics, but it should be verified that these semantics are followed.
+
+- Raising functions with pi types (e.g. (x : a) -> P x) to the SF level. This is
+  a long term goal.
+
+I should stress that bug reports would be most helpful, especially considering
+how new this library is.
 
 ## Examples
 
