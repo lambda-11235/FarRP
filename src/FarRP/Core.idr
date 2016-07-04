@@ -29,7 +29,9 @@ data SF : SVDesc -> SVDesc -> DecDesc -> Type where
   SFDSwitch : SF as (E e :: bs) d1 -> (e -> SF as bs d2) -> SF as bs (d1 \/ d2)
 
 
-postulate subtypeWeaken : SF as bs Dec -> SF as bs Cau
+-- TODO: Prove this without believe_me.
+subtypeWeaken : SF as bs Dec -> SF as bs Cau
+subtypeWeaken x = believe_me x
 
 joinWeaken : SF as bs d -> SF as bs (d' \/ d)
 joinWeaken {d} {d'} sf = joinWeaken' d' d sf
@@ -40,6 +42,7 @@ joinWeaken {d} {d'} sf = joinWeaken' d' d sf
     joinWeaken' Cau Cau sf = sf
 
 
+-- TODO: Split into smaller functions.
 partial
 stepSF : SF as bs d -> DTime -> SVRep as -> (SF as bs d, SVRep bs)
 stepSF (SFPrim f st) dt xs = let r = f dt st xs in (SFPrim f (fst r), snd r)
@@ -77,6 +80,10 @@ stepSF (SFDSwitch sf f) dt xs = let r1 = stepSF sf dt xs
                                       let r2 = (stepSF (f e) dt xs)
                                       in (joinWeaken (fst r2), snd r2)
 
+
+partial
+stepSFEE : SF [E a] bs d -> DTime -> (SF [E a] bs d, SVRep bs)
+stepSFEE sf dt = stepSF sf dt eEmpty
 
 partial
 stepSFE : SF [E a] bs d -> DTime -> a -> (SF [E a] bs d, SVRep bs)

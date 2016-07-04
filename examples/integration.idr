@@ -7,17 +7,15 @@ import FarRP.Time
 
 import Effects
 import Effect.StdIO
-import Control.Arrow
-import Control.Category
 import Data.String
 
 
-loop : SF Double Double -> DiffTimer -> Eff () [STDIO, TIME]
+loop : SF [C Ini Double] [C Ini Double] Cau -> DiffTimer -> Eff () [STDIO, TIME]
 loop sf diffTimer = do str <- getStr
                        case parseDouble str of
                          Nothing => putStrLn "Couldn't parse input"
                          Just x => do (dt, diffTimer') <- stepDiffTimer diffTimer
-                                      let (sf', v) = stepSF sf dt x
+                                      let (sf', CCons v _) = stepSFC sf dt x
                                       printLn v
                                       loop sf' diffTimer'
 

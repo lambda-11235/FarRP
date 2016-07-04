@@ -8,27 +8,27 @@ import FarRP.Time
 
 import Effects
 import Effect.StdIO
-import Control.Arrow
-import Control.Category
 import Data.String
 
 
-sum' : SF Double Double
-sum' = sfFold 0 (+)
+sum' : SF [E Double] [E Double] Cau
+sum' = evFold 0 (+)
 
-count : SF Double Double
-count = sfFold 0 (\_, acc => acc + 1)
+count : SF [E Double] [E Double] Cau
+count = evFold 0 (\_, acc => acc + 1)
 
-average : SF Double Double
-average = arrow (\p => fst p / snd p) . (sum' &&& count)
+average : SF [E Double] [E Double] Cau
+average = (sum' &&& count) >>> merge (\x, y => x / y)
 
-loop : SF Double Double -> DiffTimer -> Eff () [STDIO, TIME]
+loop : SF [E Double] [E Double] Cau -> DiffTimer -> Eff () [STDIO, TIME]
 loop sf diffTimer = do str <- getStr
                        case parseDouble str of
                          Nothing => putStrLn "Couldn't parse input"
                          Just x => do (dt, diffTimer') <- stepDiffTimer diffTimer
-                                      let (sf', avg) = stepSF sf dt x
-                                      printLn avg
+                                      let (sf', avg) = stepSFE sf dt x
+                                      case eHead avg of
+                                        Nothing => return ()
+                                        Just x => printLn x
                                       loop sf' diffTimer'
 
 main' : Eff () [STDIO, TIME]

@@ -11,6 +11,8 @@ import FarRP.Time
 %default total
 
 
+-- Basic Combinators
+
 pure : (a -> b) -> SF [C i a] [C i b] Cau
 pure {i} f = SFPrim (pure' i) ()
   where
@@ -45,6 +47,8 @@ merge {a} f = SFPrim merge' ()
     merge' _ _ (ECons x (ECons y xs)) = ((), ECons (merge'' x y) xs)
 
 
+-- Combinator Operators
+
 infixl 9 >>>
 (>>>) : SF as bs d1 -> SF bs cs d2 -> SF as cs (d1 /\ d2)
 (>>>) = SFComp
@@ -61,6 +65,8 @@ infixr 3 &&&
     double = SFPrim (\_, _, svr => ((), svr ++ svr)) ()
 
 
+-- Event Combinators
+
 edge : SF [C Ini Bool] [E Unit] Cau
 edge = SFPrim edge' ()
   where
@@ -72,6 +78,16 @@ hold x = SFPrim hold' x
   where
     hold' _ _ (ECons (Just x') xs) = (x', CCons x' xs)
     hold' _ x' (ECons Nothing xs) = (x', CCons x' xs)
+
+evFold : b -> (a -> b -> b) -> SF [E a] [E b] Cau
+evFold x f = SFPrim evFold' x
+  where
+    evFold' _ x (ECons Nothing xs) = (x, ECons Nothing xs)
+    evFold' _ x (ECons (Just x') xs) = let r = f x' x
+                                       in (r, ECons (Just r) xs)
+
+
+-- Pre Combinators
 
 pre : SF [C Ini a] [C Uni a] Dec
 pre = SFDPrim pre' Nothing
@@ -88,9 +104,15 @@ initialize x = SFPrim init' ()
     init' _ _ (UnInitCons xs) = ((), CCons x xs)
 
 
-evFold : b -> (a -> b -> b) -> SF [E a] [E b] Cau
-evFold x f = SFPrim evFold' x
+-- Integration and Differentiation Combinators
+
+integrate : Double -> SF [C Ini Double] [C Ini Double] Cau
+integrate c = SFPrim integ' c
   where
-    evFold' _ x (ECons Nothing xs) = (x, ECons Nothing xs)
-    evFold' _ x (ECons (Just x') xs) = let r = f x' x
-                                       in (r, ECons (Just r) xs)
+    integ' dt c (CCons x xs) = let r = x * (dtimeToDouble dt) + c
+                               in (r, CCons r xs)
+
+diff : SF [C Ini Double] [C Ini Double] Cau
+diff = SFPrim diff' ()
+  where
+    diff' dt _ (CCons x xs) = ((), CCons (x * dtimeToDouble dt) xs)

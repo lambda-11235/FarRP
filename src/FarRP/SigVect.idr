@@ -36,6 +36,18 @@ eSingle x = ECons (Just x) SVRNil
 cSingle : a -> SVRep [C i a]
 cSingle x = CCons x SVRNil
 
+eHead : SVRep (E a :: as) -> Maybe a
+eHead (ECons x _) = x
+
+cHead : SVRep (C i a :: as) -> Maybe a
+cHead (CCons x _) = Just x
+cHead (UnInitCons _) = Nothing
+
+tail : SVRep (a :: as) -> SVRep as
+tail (ECons _ xs) = xs
+tail (CCons _ xs) = xs
+tail (UnInitCons xs) = xs
+
 
 (++) : SVRep as -> SVRep bs -> SVRep (as ++ bs)
 (++) {as} {bs} svr1 svr2 = append' as bs svr1 svr2
