@@ -10,6 +10,8 @@ import FarRP.Time
 %default total
 
 
+||| A state function, which can be abstractly thought of as `(Time -> SVRep as)
+||| -> (Time -> SVRep bs)`.
 public export
 data SF : SVDesc -> SVDesc -> DecDesc -> Type where
   SFPrim : {State : Type} -> (DTime -> State -> SVRep as -> (State, SVRep bs))
@@ -30,6 +32,7 @@ data SF : SVDesc -> SVDesc -> DecDesc -> Type where
 
 
 -- TODO: Prove this without believe_me.
+||| A postulate that Dec is a subtype of Cau when considering a SF.
 subtypeWeaken : SF as bs Dec -> SF as bs Cau
 subtypeWeaken x = believe_me x
 
@@ -43,6 +46,9 @@ joinWeaken {d} {d'} sf = joinWeaken' d' d sf
 
 
 -- TODO: Split into smaller functions.
+||| Steps a state function through one moment in time, given the change in time
+||| since the last step and the input for the current time. Returns an updated
+||| version of the state function and its output.
 partial
 stepSF : SF as bs d -> DTime -> SVRep as -> (SF as bs d, SVRep bs)
 stepSF (SFPrim f st) dt xs = let r = f dt st xs in (SFPrim f (fst r), snd r)
@@ -81,14 +87,17 @@ stepSF (SFDSwitch sf f) dt xs = let r1 = stepSF sf dt xs
                                       in (joinWeaken (fst r2), snd r2)
 
 
+||| Like stepSF, but with the input being an empty event signal.
 partial
 stepSFEE : SF [E a] bs d -> DTime -> (SF [E a] bs d, SVRep bs)
 stepSFEE sf dt = stepSF sf dt eEmpty
 
+||| Like stepSF, but with the input being an inhabited event signal.
 partial
 stepSFE : SF [E a] bs d -> DTime -> a -> (SF [E a] bs d, SVRep bs)
 stepSFE sf dt x = stepSF sf dt (eSingle x)
 
+||| Like stepSF, but with the input being part of a continuos signal.
 partial
 stepSFC : SF [C i a] bs d -> DTime -> a -> (SF [C i a] bs d, SVRep bs)
 stepSFC sf dt x = stepSF sf dt (cSingle x)

@@ -67,11 +67,12 @@ infixr 3 &&&
 
 -- Event Combinators
 
+||| Produces an event whenever the input changes from False to True.
 edge : SF [C Ini Bool] [E Unit] Cau
-edge = SFPrim edge' ()
+edge = SFPrim edge' False
   where
-    edge' _ _ (CCons True xs) = ((), ECons (Just ()) xs)
-    edge' _ _ _ = ((), ECons Nothing SVRNil)
+    edge' _ False (CCons True xs) = (True, ECons (Just ()) xs)
+    edge' _ _ (CCons x xs) = (x, ECons Nothing xs)
 
 hold : a -> SF [E a] [C Ini a] Cau
 hold x = SFPrim hold' x
@@ -89,6 +90,7 @@ evFold x f = SFPrim evFold' x
 
 -- Pre Combinators
 
+||| Delays a signal for the smallest possible time. Must be initialized.
 pre : SF [C Ini a] [C Uni a] Dec
 pre = SFDPrim pre' Nothing
   where
@@ -97,6 +99,7 @@ pre = SFDPrim pre' Nothing
     pre' _ Nothing = (Just, UnInitCons SVRNil)
     pre' _ (Just (CCons x xs)) = (Just, (CCons x xs))
 
+||| Initializes an input signal with a starting value.
 initialize : b -> SF [C Uni b] [C Ini b] Cau
 initialize x = SFPrim init' ()
   where

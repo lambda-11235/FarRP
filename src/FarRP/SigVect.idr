@@ -8,12 +8,19 @@ import FarRP.Time
 %default total
 
 
+||| A descriptor for the initialization state of a signal.
 data Init : Type where
+  ||| An initialized signal (ie. one that has a starting value).
   Ini : Init
+  ||| An uninitialized signal (ie. one that needs a starting value).
   Uni : Init
 
+||| A signal description.
 data SigDesc : Type where
+  ||| An event signal description, which contains the event output type.
   E : Type -> SigDesc
+  ||| A continuos signal description, which containt the initialization state
+  ||| and output type of the signal.
   C : Init -> Type -> SigDesc
 
 SVDesc : Type
@@ -49,6 +56,7 @@ tail (CCons _ xs) = xs
 tail (UnInitCons xs) = xs
 
 
+||| Concatenates two signal vector representations together.
 (++) : SVRep as -> SVRep bs -> SVRep (as ++ bs)
 (++) {as} {bs} svr1 svr2 = append' as bs svr1 svr2
   where
@@ -61,6 +69,7 @@ tail (UnInitCons xs) = xs
     append' ((C Uni a) :: as) bs (UnInitCons xs) svr2 = UnInitCons (append' as bs xs svr2)
 
 
+||| Splits a signal vector representation into two SVRs.
 split : SVRep (as ++ bs) -> (SVRep as, SVRep bs)
 split {as} {bs} svr = split' as bs svr
   where
