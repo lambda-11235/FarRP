@@ -3,7 +3,7 @@
 
 FarRP is an arrowized FRP library for Idris which uses dependent types to
 provide static guarantees. It is based on Neil Sculthorpe and Henrik Nilsson's
-paper "Safe Functional Reactive Programming through Dependent Types".
+paper ["Safe Functional Reactive Programming through Dependent Types"](http://www.cs.rhul.ac.uk/home/ucac009/publications/safe-FRP-types.pdf).
 
 ## Contributing
 
