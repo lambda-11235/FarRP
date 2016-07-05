@@ -67,6 +67,17 @@ infixr 3 &&&
 
 -- Event Combinators
 
+||| Never produces a signal output.
+never : SF as [E b] Dec
+never = SFDPrim (\_, _ => (\_ => (), eEmpty)) ()
+
+||| Produces a signal output now, but never again.
+now : SF as [E Unit] Dec
+now = SFDPrim now' True
+  where
+    now' _ True = (const False, eSingle ())
+    now' _ False = (const False, eEmpty)
+
 ||| Produces an event whenever the input changes from False to True.
 edge : SF [C Ini Bool] [E Unit] Cau
 edge = SFPrim edge' False
@@ -100,21 +111,30 @@ pre = SFDPrim pre' Nothing
     pre' _ (Just (CCons x xs)) = (Just, (CCons x xs))
 
 ||| Initializes an input signal with a starting value.
-initialize : b -> SF [C Uni b] [C Ini b] Cau
-initialize x = SFPrim init' ()
+initialize' : b -> SF [C Uni b] [C Ini b] Cau
+initialize' x = SFPrim init' ()
   where
     init' _ _ (CCons x' xs) = ((), CCons x' xs)
     init' _ _ (UnInitCons xs) = ((), CCons x xs)
 
+||| Initializes an SF with a starting value.
+initialize : b -> SF as [C i b] d -> SF as [C Ini b] d
+initialize {i} x sf = case i of
+                        Ini => sf
+                        Uni => replace (trans meetSym cauMeet)
+                                       (sf >>> initialize' x)
+
 
 -- Integration and Differentiation Combinators
 
+||| Integrates the input signal over time.
 integrate : Double -> SF [C Ini Double] [C Ini Double] Cau
 integrate c = SFPrim integ' c
   where
     integ' dt c (CCons x xs) = let r = x * (dtimeToDouble dt) + c
                                in (r, CCons r xs)
 
+||| Differentiates the input signal with respect to time.
 diff : SF [C Ini Double] [C Ini Double] Cau
 diff = SFPrim diff' ()
   where
