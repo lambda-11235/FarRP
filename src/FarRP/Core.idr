@@ -37,12 +37,10 @@ subtypeWeaken : SF as bs Dec -> SF as bs Cau
 subtypeWeaken x = believe_me x
 
 joinWeaken : SF as bs d -> SF as bs (d' \/ d)
-joinWeaken {d} {d'} sf = joinWeaken' d' d sf
-  where
-    joinWeaken' Dec Dec sf = sf
-    joinWeaken' Dec Cau sf = sf
-    joinWeaken' Cau Dec sf = subtypeWeaken sf
-    joinWeaken' Cau Cau sf = sf
+joinWeaken {d' = Dec} {d = Dec} sf = sf
+joinWeaken {d' = Dec} {d = Cau} sf = sf
+joinWeaken {d' = Cau} {d = Dec} sf = subtypeWeaken sf
+joinWeaken {d' = Cau} {d = Cau} sf = sf
 
 
 -- TODO: Split into smaller functions.

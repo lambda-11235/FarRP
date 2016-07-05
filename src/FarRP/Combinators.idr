@@ -53,6 +53,10 @@ infixl 9 >>>
 (>>>) : SF as bs d1 -> SF bs cs d2 -> SF as cs (d1 /\ d2)
 (>>>) = SFComp
 
+infixr 9 <<<
+(<<<) : SF bs cs d2 -> SF as bs d1 -> SF as cs (d1 /\ d2)
+(<<<) = flip SFComp
+
 infixr 3 ***
 (***) : SF as bs d1 -> SF cs ds d2 -> SF (as ++ cs) (bs ++ ds) (d1 \/ d2)
 (***) = SFPair
@@ -119,10 +123,9 @@ initialize' x = SFPrim init' ()
 
 ||| Initializes an SF with a starting value.
 initialize : b -> SF as [C i b] d -> SF as [C Ini b] d
-initialize {i} x sf = case i of
-                        Ini => sf
-                        Uni => replace (trans meetSym cauMeet)
-                                       (sf >>> initialize' x)
+initialize {i=Ini} x sf = sf
+initialize {i=Uni} x sf = replace (trans meetSym cauMeet)
+                                  (sf >>> initialize' x)
 
 
 -- Integration and Differentiation Combinators

@@ -58,30 +58,24 @@ tail (UnInitCons xs) = xs
 
 ||| Concatenates two signal vector representations together.
 (++) : SVRep as -> SVRep bs -> SVRep (as ++ bs)
-(++) {as} {bs} svr1 svr2 = append' as bs svr1 svr2
-  where
-    append' : (as : SVDesc) -> (bs : SVDesc) -> SVRep as -> SVRep bs -> SVRep (as ++ bs)
-    append' [] bs SVRNil svr2 = svr2
-    append' as [] svr1 SVRNil = replace {P = SVRep} (sym $ appendNilRightNeutral as) svr1
-    append' ((E a) :: as) bs (ECons x xs) svr2 = ECons x (append' as bs xs svr2)
-    append' ((C Ini a) :: as) bs (CCons x xs) svr2 = CCons x (append' as bs xs svr2)
-    append' ((C Uni a) :: as) bs (CCons x xs) svr2 = CCons x (append' as bs xs svr2)
-    append' ((C Uni a) :: as) bs (UnInitCons xs) svr2 = UnInitCons (append' as bs xs svr2)
+(++) {as = []} SVRNil svr2 = svr2
+(++) {as} {bs = []} svr1 SVRNil = replace (sym $ appendNilRightNeutral as) svr1
+(++) {as = (E a) :: as'} (ECons x xs) svr2 = ECons x (xs ++ svr2)
+(++) {as = (C Ini a) :: as'} (CCons x xs) svr2 = CCons x (xs ++ svr2)
+(++) {as = (C Uni a) :: as'} (CCons x xs) svr2 = CCons x (xs ++ svr2)
+(++) {as = (C Uni a) :: as'} (UnInitCons xs) svr2 = UnInitCons (xs ++ svr2)
 
 
 ||| Splits a signal vector representation into two SVRs.
 split : SVRep (as ++ bs) -> (SVRep as, SVRep bs)
-split {as} {bs} svr = split' as bs svr
-  where
-    split' : (as : SVDesc) -> (bs : SVDesc) -> SVRep (as ++ bs) -> (SVRep as, SVRep bs)
-    split' [] [] svr = (SVRNil, SVRNil)
-    split' [] bs svr = (SVRNil, svr)
-    split' as [] svr = (replace {P = SVRep} (appendNilRightNeutral as) svr, SVRNil)
-    split' ((E a) :: as) bs (ECons x xs) = let r = split' as bs xs
-                                           in (ECons x (fst r), snd r)
-    split' ((C Ini a) :: as) bs (CCons x xs) = let r = split' as bs xs
-                                               in (CCons x (fst r), snd r)
-    split' ((C Uni a) :: as) bs (CCons x xs) = let r = split' as bs xs
-                                               in (CCons x (fst r), snd r)
-    split' ((C Uni a) :: as) bs (UnInitCons xs) = let r = split' as bs xs
-                                                  in (UnInitCons (fst r), snd r)
+split {as = []} {bs = []} svr = (SVRNil, SVRNil)
+split {as = []} svr = (SVRNil, svr)
+split {as} {bs = []} svr = (replace {P = SVRep} (appendNilRightNeutral as) svr, SVRNil)
+split {as = (E a) :: as'} (ECons x xs) = let r = split xs
+                                         in (ECons x (fst r), snd r)
+split {as = (C Ini a) :: as'} (CCons x xs) = let r = split xs
+                                             in (CCons x (fst r), snd r)
+split {as = (C Uni a) :: as'} (CCons x xs) = let r = split xs
+                                             in (CCons x (fst r), snd r)
+split {as = (C Uni a) :: as} (UnInitCons xs) = let r = split xs
+                                               in (UnInitCons (fst r), snd r)

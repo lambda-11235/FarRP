@@ -29,30 +29,22 @@ infixr 5 /\
 
 joinSym : {d1 : DecDesc} -> {d2 : DecDesc}
   -> d1 \/ d2 = d2 \/ d1
-joinSym {d1} {d2} = joinSym' d1 d2
-  where
-    joinSym' Dec Dec = Refl
-    joinSym' Dec Cau = Refl
-    joinSym' Cau Dec = Refl
-    joinSym' Cau Cau = Refl
+joinSym {d1 = Dec} {d2 = Dec} = Refl
+joinSym {d1 = Dec} {d2 = Cau} = Refl
+joinSym {d1 = Cau} {d2 = Dec} = Refl
+joinSym {d1 = Cau} {d2 = Cau} = Refl
 
 meetSym : {d1 : DecDesc} -> {d2 : DecDesc}
   -> d1 /\ d2 = d2 /\ d1
-meetSym {d1} {d2} = meetSym' d1 d2
-  where
-    meetSym' Dec Dec = Refl
-    meetSym' Dec Cau = Refl
-    meetSym' Cau Dec = Refl
-    meetSym' Cau Cau = Refl
+meetSym {d1 = Dec} {d2 = Dec} = Refl
+meetSym {d1 = Dec} {d2 = Cau} = Refl
+meetSym {d1 = Cau} {d2 = Dec} = Refl
+meetSym {d1 = Cau} {d2 = Cau} = Refl
 
 decJoin : {d : DecDesc} -> Dec \/ d = d
-decJoin {d} = decJoin' d
-  where
-    decJoin' Dec = Refl
-    decJoin' Cau = Refl
+decJoin {d = Dec} = Refl
+decJoin {d = Cau} = Refl
 
 cauMeet : {d : DecDesc} -> Cau /\ d = d
-cauMeet {d} = cauMeet' d
-  where
-    cauMeet' Dec = Refl
-    cauMeet' Cau = Refl
+cauMeet {d = Dec} = Refl
+cauMeet {d = Cau} = Refl
