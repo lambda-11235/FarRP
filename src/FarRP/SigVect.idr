@@ -19,7 +19,7 @@ data Init : Type where
 data SigDesc : Type where
   ||| An event signal description, which contains the event output type.
   E : Type -> SigDesc
-  ||| A continuos signal description, which containt the initialization state
+  ||| A continuous signal description, which contains the initialization state
   ||| and output type of the signal.
   C : Init -> Type -> SigDesc
 
