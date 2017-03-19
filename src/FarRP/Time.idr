@@ -66,14 +66,14 @@ newDiffTimer' = map MkDiffTimer getTime'
 
 newDiffTimer : Eff DiffTimer [TIME]
 newDiffTimer = do t <- getTime
-                  return $ MkDiffTimer t
+                  pure $ MkDiffTimer t
 
 stepDiffTimer' : DiffTimer -> IO (DTime, DiffTimer)
 stepDiffTimer' (MkDiffTimer oldtime) = do newtime <- getTime'
                                           let dt = newtime - oldtime
-                                          return (MkDTime dt, MkDiffTimer newtime)
+                                          pure (MkDTime dt, MkDiffTimer newtime)
 
 stepDiffTimer : DiffTimer -> Eff (DTime, DiffTimer) [TIME]
 stepDiffTimer (MkDiffTimer oldtime) = do newtime <- getTime
                                          let dt = newtime - oldtime
-                                         return (MkDTime dt, MkDiffTimer newtime)
+                                         pure (MkDTime dt, MkDiffTimer newtime)
