@@ -27,7 +27,7 @@ loop sf diffTimer = do str <- getStr
                          Just x => do (dt, diffTimer') <- stepDiffTimer diffTimer
                                       let (sf', avg) = stepSFE sf dt x
                                       case eHead avg of
-                                        Nothing => return ()
+                                        Nothing => pure ()
                                         Just x => printLn x
                                       loop sf' diffTimer'
 

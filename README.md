@@ -26,4 +26,32 @@ how new this library is.
 
 ## Examples
 
-Examples can be found in the examples/ directory.
+Examples can be found in the examples/ directory. An example session of running
+an example is given below.
+
+```
+> idris --build farrp.ipkg
+Entering directory `./src'
+Type checking ./FarRP/Time.idr
+Type checking ./FarRP/SigVect.idr
+Type checking ./FarRP/DecDesc.idr
+Type checking ./FarRP/Core.idr
+Type checking ./FarRP/Combinators.idr
+Type checking ./FarRP.idr
+Leaving directory `./src'
+
+> cd examples
+> idris average.idr -i ../src -o avg
+> ./avg
+1
+1
+2
+1.5
+3
+2
+4
+2.5
+5
+3
+^C
+```
