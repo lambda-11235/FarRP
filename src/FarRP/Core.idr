@@ -17,8 +17,10 @@ data SF : SVDesc -> SVDesc -> DecDesc -> Type where
   SFPrim : {State : Type} -> (DTime -> State -> SVRep as -> (State, SVRep bs))
          -> State -> SF as bs Cau
 
+  ||| Conceptually, the type of this should be SF as bs Dec, but since Dec <:
+  ||| Cau it may also have the type SF as bs Cau.
   SFDPrim : {State : Type} -> (DTime -> State -> (SVRep as -> State, SVRep bs))
-         -> State -> SF as bs Dec
+         -> State -> SF as bs d
 
   SFComp : SF as bs d1 -> SF bs cs d2 -> SF as cs (d1 /\ d2)
 
@@ -31,10 +33,18 @@ data SF : SVDesc -> SVDesc -> DecDesc -> Type where
   SFDSwitch : SF as (E e :: bs) d1 -> (e -> SF as bs d2) -> SF as bs (d1 \/ d2)
 
 
--- TODO: Prove this without believe_me.
 ||| A postulate that Dec is a subtype of Cau when considering a SF.
 subtypeWeaken : SF as bs Dec -> SF as bs Cau
-subtypeWeaken x = believe_me x
+subtypeWeaken = weaken'
+  where
+    weaken' : SF as bs d -> SF as bs Cau
+    weaken' sf@(SFPrim _ _) = sf
+    weaken' (SFDPrim f s) = SFDPrim f s
+    weaken' (SFComp x y) = SFComp (weaken' x) (weaken' y)
+    weaken' (SFPair x y) = SFPair (weaken' x) (weaken' y)
+    weaken' (SFLoop x y) = SFLoop (weaken' x) y
+    weaken' (SFSwitch x f) = SFSwitch (weaken' x) (\e => weaken' (f e))
+    weaken' (SFDSwitch x f) = SFDSwitch (weaken' x) (\e => weaken' (f e))
 
 joinWeaken : SF as bs d -> SF as bs (d' \/ d)
 joinWeaken {d' = Dec} {d = Dec} sf = sf
@@ -95,7 +105,7 @@ partial
 stepSFE : SF [E a] bs d -> DTime -> a -> (SF [E a] bs d, SVRep bs)
 stepSFE sf dt x = stepSF sf dt (eSingle x)
 
-||| Like stepSF, but with the input being part of a continuos signal.
+||| Like stepSF, but with the input being part of a continuous signal.
 partial
 stepSFC : SF [C i a] bs d -> DTime -> a -> (SF [C i a] bs d, SVRep bs)
 stepSFC sf dt x = stepSF sf dt (cSingle x)
