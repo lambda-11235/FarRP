@@ -30,6 +30,9 @@ Neg DTime where
   negate (MkDTime x) = MkDTime (negate x)
   (-) (MkDTime x) (MkDTime y) = MkDTime (x - y)
 
+public export
+Abs DTime where
+  abs (MkDTime x) =  MkDTime (abs x)
 
 getTime' : IO Double
 getTime' = foreign FFI_C "getTime" (IO Double)
