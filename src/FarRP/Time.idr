@@ -29,7 +29,6 @@ public export
 Neg DTime where
   negate (MkDTime x) = MkDTime (negate x)
   (-) (MkDTime x) (MkDTime y) = MkDTime (x - y)
-  abs (MkDTime x) = MkDTime (abs x)
 
 
 getTime' : IO Double
