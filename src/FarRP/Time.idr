@@ -43,11 +43,11 @@ data Time : Effect where
   GetTime : sig Time Double
 
 public export
-implementation Handler Time IO where
+Handler Time IO where
     handle () GetTime k = do t <- getTime'; k t ()
 
 public export
-implementation Handler Time (IOExcept a) where
+Handler Time (IOExcept a) where
     handle () GetTime k = do t <- ioe_lift getTime'; k t ()
 
 public export
