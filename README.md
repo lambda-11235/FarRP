@@ -55,3 +55,9 @@ Leaving directory `./src'
 3
 ^C
 ```
+
+# License
+
+Copyright (C) 2018 Taran Lynn <<taranlynn0@gmail.com>>
+
+This library is licensed under the LGPLv3 (see LICENSE file).
